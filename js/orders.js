@@ -31,6 +31,7 @@
   const selectedTotalEl = document.getElementById('orders-selected-total');
   const shippingPerUnitInput = document.getElementById('orders-shipping-per-unit');
   const shippingTotalEl = document.getElementById('orders-shipping-total');
+  const netTotalEl = document.getElementById('orders-net-total');
   const dailySummaryPlaceholder = document.getElementById('daily-summary-placeholder');
   const dailySummaryContent = document.getElementById('daily-summary-content');
   const dailySummaryDateEl = document.getElementById('daily-summary-date');
@@ -247,6 +248,8 @@
     if (perUnit > 0 && count > 0) {
       shippingTotalEl.title = 'شحن مسجل في الطلبات: ' + formatMoney(totalShippingFromOrders) + ' + (' + count + ' × ' + perUnit + ') تقدير';
     }
+    const netTotal = totalRevenue - totalShipping;
+    if (netTotalEl) netTotalEl.textContent = formatMoney(netTotal);
   }
 
   function render() {
