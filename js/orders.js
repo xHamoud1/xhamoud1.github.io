@@ -284,8 +284,11 @@
       checkAll.onclick = function () {
         if (this.checked) filtered.forEach(o => selectedOrderIds.add(o.id));
         else filtered.forEach(o => selectedOrderIds.delete(o.id));
-        render();
         updateSelectionSummary();
+        // Update checkbox states without re-rendering the entire table
+        tbody.querySelectorAll('.order-row-check').forEach(cb => {
+          cb.checked = selectedOrderIds.has(cb.dataset.id);
+        });
       };
     }
 
@@ -347,13 +350,21 @@
 
     if (btnSelectAll) btnSelectAll.onclick = function () {
       getFilteredOrders().forEach(o => selectedOrderIds.add(o.id));
-      render();
       updateSelectionSummary();
+      // Update checkbox states without re-rendering the entire table
+      tbody.querySelectorAll('.order-row-check').forEach(cb => {
+        cb.checked = selectedOrderIds.has(cb.dataset.id);
+      });
+      if (checkAll) checkAll.checked = getFilteredOrders().every(o => selectedOrderIds.has(o.id));
     };
     if (btnDeselectAll) btnDeselectAll.onclick = function () {
       selectedOrderIds.clear();
-      render();
       updateSelectionSummary();
+      // Update checkbox states without re-rendering the entire table
+      tbody.querySelectorAll('.order-row-check').forEach(cb => {
+        cb.checked = false;
+      });
+      if (checkAll) checkAll.checked = false;
     };
     if (shippingPerUnitInput) shippingPerUnitInput.oninput = updateSelectionSummary;
 
