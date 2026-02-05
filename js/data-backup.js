@@ -19,6 +19,7 @@
         [STORAGE_KEYS.PRODUCTS]: getProducts(),
         [STORAGE_KEYS.MOVEMENTS]: getMovements(),
         [STORAGE_KEYS.ORDERS]: getOrders(),
+        delivery_selected_orders: JSON.parse(localStorage.getItem('delivery_selected_orders') || '[]'),
       },
     };
     return JSON.stringify(payload);
@@ -70,6 +71,7 @@
       if (Array.isArray(d[STORAGE_KEYS.PRODUCTS])) setProducts(d[STORAGE_KEYS.PRODUCTS]);
       if (Array.isArray(d[STORAGE_KEYS.MOVEMENTS])) setMovements(d[STORAGE_KEYS.MOVEMENTS]);
       if (Array.isArray(d[STORAGE_KEYS.ORDERS])) setOrders(d[STORAGE_KEYS.ORDERS]);
+      if (Array.isArray(d.delivery_selected_orders)) localStorage.setItem('delivery_selected_orders', JSON.stringify(d.delivery_selected_orders));
       setRestoreStatus('تم استعادة البيانات بنجاح. جاري تحديث الصفحة...');
       pasteArea.value = '';
       if (window.renderDeposits) window.renderDeposits();

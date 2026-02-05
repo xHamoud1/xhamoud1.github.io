@@ -44,6 +44,24 @@
 
   let selectedOrderIds = new Set();
 
+  // Load selected order IDs from localStorage
+  function loadSelectedOrderIds() {
+    const saved = localStorage.getItem('delivery_selected_orders');
+    if (saved) {
+      try {
+        const ids = JSON.parse(saved);
+        selectedOrderIds = new Set(ids);
+      } catch (e) {
+        selectedOrderIds = new Set();
+      }
+    }
+  }
+
+  // Save selected order IDs to localStorage
+  function saveSelectedOrderIds() {
+    localStorage.setItem('delivery_selected_orders', JSON.stringify(Array.from(selectedOrderIds)));
+  }
+
   const STATUS_MAP = {
     pending: { label: 'قيد الانتظار', class: 'badge-pending' },
     delivered: { label: 'متسلم', class: 'badge-delivered' },
@@ -250,9 +268,15 @@
     }
     const netTotal = totalRevenue - totalShipping;
     if (netTotalEl) netTotalEl.textContent = formatMoney(netTotal);
+    
+    // Save selected orders to localStorage
+    saveSelectedOrderIds();
   }
 
   function render() {
+    // Load selected orders from localStorage
+    loadSelectedOrderIds();
+    
     const filtered = getFilteredOrders();
     renderDailySummary(getFilterDate());
     if (checkAll) {
