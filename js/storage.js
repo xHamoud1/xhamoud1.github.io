@@ -5,6 +5,7 @@
 
 const STORAGE_KEYS = {
   DEPOSITS: 'delivery_deposits',
+  TRANSFERS: 'delivery_transfers',
   PRODUCTS: 'delivery_products',
   MOVEMENTS: 'delivery_movements',
   ORDERS: 'delivery_orders',
@@ -27,6 +28,16 @@ function getDeposits() {
 
 function setDeposits(arr) {
   localStorage.setItem(STORAGE_KEYS.DEPOSITS, JSON.stringify(arr));
+}
+
+// التحويلات
+function getTransfers() {
+  const raw = localStorage.getItem(STORAGE_KEYS.TRANSFERS);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function setTransfers(arr) {
+  localStorage.setItem(STORAGE_KEYS.TRANSFERS, JSON.stringify(arr));
 }
 
 // المنتجات

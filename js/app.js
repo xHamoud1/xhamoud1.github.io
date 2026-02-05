@@ -13,6 +13,7 @@
     loginScreen.classList.add('hidden');
     appEl.classList.remove('hidden');
     if (window.renderDeposits) window.renderDeposits();
+    if (window.renderTransfers) window.renderTransfers();
     if (window.renderProducts) window.renderProducts();
     if (window.renderMovements) window.renderMovements();
     if (window.renderOrders) window.renderOrders();
@@ -30,6 +31,11 @@
     const deposits = getDeposits();
     const totalDeposits = deposits.reduce((s, d) => s + Number(d.amount), 0);
     document.getElementById('stat-deposits').textContent = Number(totalDeposits).toLocaleString('ar-EG') + ' ج.م';
+    
+    const transfers = getTransfers();
+    const totalTransfers = transfers.reduce((s, t) => s + Number(t.amount), 0);
+    document.getElementById('stat-transfers').textContent = Number(totalTransfers).toLocaleString('ar-EG') + ' ج.م';
+    
     document.getElementById('stat-products').textContent = getProducts().length;
     const pendingOrders = getOrders().filter(o => o.status === 'pending').length;
     document.getElementById('stat-orders-pending').textContent = pendingOrders;

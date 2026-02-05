@@ -30,6 +30,7 @@
       <nav class="nav">
         <a href="#dashboard" class="nav-link active" data-page="dashboard">لوحة التحكم</a>
         <a href="#deposits" class="nav-link" data-page="deposits">التأمينات</a>
+        <a href="#transfers" class="nav-link" data-page="transfers">التحويلات</a>
         <a href="#products" class="nav-link" data-page="products">المنتجات</a>
         <a href="#movements" class="nav-link" data-page="movements">حركات المخزون</a>
         <a href="#orders" class="nav-link" data-page="orders">الطلبات</a>
@@ -47,6 +48,10 @@
           <div class="stat-card">
             <span class="stat-label">إجمالي التأمينات</span>
             <span id="stat-deposits" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">إجمالي التحويلات</span>
+            <span id="stat-transfers" class="stat-value">0</span>
           </div>
           <div class="stat-card">
             <span class="stat-label">عدد المنتجات</span>
@@ -76,6 +81,27 @@
               </tr>
             </thead>
             <tbody id="deposits-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- التحويلات -->
+      <section id="page-transfers" class="page">
+        <h2>التحويلات</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-transfer" class="btn btn-primary">إضافة تحويل</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>المبلغ</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transfers-tbody"></tbody>
           </table>
         </div>
       </section>
@@ -286,6 +312,26 @@
     </div>
   </div>
 
+  <!-- نافذة إضافة/تعديل تحويل -->
+  <div id="modal-transfer" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-transfer-title">إضافة تحويل</h3>
+      <form id="form-transfer">
+        <input type="hidden" id="transfer-id">
+        <label>المبلغ</label>
+        <input type="number" id="transfer-amount" step="0.01" required>
+        <label>التاريخ</label>
+        <input type="date" id="transfer-date" required>
+        <label>ملاحظات</label>
+        <textarea id="transfer-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- نافذة إضافة/تعديل منتج -->
   <div id="modal-product" class="modal">
     <div class="modal-content">
@@ -398,6 +444,7 @@
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/deposits.js"></script>
+  <script src="js/transfers.js"></script>
   <script src="js/products.js"></script>
   <script src="js/movements.js"></script>
   <script src="js/orders.js"></script>

@@ -4,6 +4,55 @@
 (function () {
   const { jsPDF } = window.jspdf;
 
+  const ARABIC_FONT_NAME = 'Amiri';
+  const ARABIC_FONT_FILE = 'Amiri-Regular.ttf';
+  const ARABIC_FONT_URLS = [
+    'https://raw.githubusercontent.com/aliftype/amiri/master/Amiri-Regular.ttf',
+    'https://cdn.jsdelivr.net/gh/aliftype/amiri@master/Amiri-Regular.ttf',
+  ];
+  let arabicFontPromise = null;
+
+  function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  }
+
+  function ensureArabicFont(doc) {
+    if (typeof doc.getFontList === 'function') {
+      const list = doc.getFontList();
+      if (list && list[ARABIC_FONT_NAME]) return Promise.resolve();
+    }
+
+    if (!arabicFontPromise) {
+      const tryDownload = function (urls, idx) {
+        if (idx >= urls.length) return Promise.reject(new Error('Font download failed'));
+        return fetch(urls[idx])
+          .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.arrayBuffer();
+          })
+          .catch(() => tryDownload(urls, idx + 1));
+      };
+
+      arabicFontPromise = tryDownload(ARABIC_FONT_URLS, 0)
+        .then(buf => arrayBufferToBase64(buf));
+    }
+
+    return arabicFontPromise
+      .then(base64 => {
+        doc.addFileToVFS(ARABIC_FONT_FILE, base64);
+        doc.addFont(ARABIC_FONT_FILE, ARABIC_FONT_NAME, 'normal');
+      })
+      .catch(err => {
+        console.warn('Arabic font load failed, falling back to default font. Reason:', err);
+      });
+  }
+
   function formatDateAr(d) {
     if (!d) return '—';
     const dt = new Date(d + 'T12:00:00');
@@ -74,9 +123,11 @@
   }
 
   // --- PDF ---
-  function createPdfDoc(title) {
+  async function createPdfDoc(title) {
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    doc.setFont('Helvetica');
+    await ensureArabicFont(doc);
+    if (typeof doc.setR2L === 'function') doc.setR2L(true);
+    doc.setFont(ARABIC_FONT_NAME, 'normal');
     doc.setFontSize(18);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
     doc.setFontSize(10);
@@ -84,54 +135,54 @@
     return doc;
   }
 
-  function exportDepositsPdf() {
+  async function exportDepositsPdf() {
     const list = getDeposits();
-    const doc = createPdfDoc('تقرير التأمينات');
+    const doc = await createPdfDoc('تقرير التأمينات');
     const tableData = list.map(d => [formatDateAr(d.date), String(d.amount), (d.note || '').slice(0, 60)]);
     doc.autoTable({
       startY: 28,
       head: [['التاريخ', 'المبلغ', 'ملاحظات']],
       body: tableData.length ? tableData : [['لا توجد بيانات']],
       theme: 'grid',
-      styles: { font: 'Helvetica', fontSize: 9 },
+      styles: { font: ARABIC_FONT_NAME, fontSize: 9, halign: 'right' },
       headStyles: { fillColor: [60, 60, 60] },
     });
     doc.save('تقرير-التأمينات.pdf');
   }
 
-  function exportProductsPdf() {
+  async function exportProductsPdf() {
     const list = getProducts();
-    const doc = createPdfDoc('تقرير المنتجات والمخزون');
+    const doc = await createPdfDoc('تقرير المنتجات والمخزون');
     const tableData = list.map(p => [p.name, p.unit || '—', String(getProductCurrentStock(p.id))]);
     doc.autoTable({
       startY: 28,
       head: [['المنتج', 'الوحدة', 'الكمية الحالية']],
       body: tableData.length ? tableData : [['لا توجد بيانات']],
       theme: 'grid',
-      styles: { font: 'Helvetica', fontSize: 9 },
+      styles: { font: ARABIC_FONT_NAME, fontSize: 9, halign: 'right' },
       headStyles: { fillColor: [60, 60, 60] },
     });
     doc.save('تقرير-المنتجات-والمخزون.pdf');
   }
 
-  function exportMovementsPdf() {
+  async function exportMovementsPdf() {
     const list = getMovements();
-    const doc = createPdfDoc('تقرير حركات المخزون');
+    const doc = await createPdfDoc('تقرير حركات المخزون');
     const tableData = list.map(m => [formatDateAr(m.date), getProductName(m.productId), m.type === 'in' ? 'إدخال' : 'إخراج', String(m.qty), (m.note || '').slice(0, 40)]);
     doc.autoTable({
       startY: 28,
       head: [['التاريخ', 'المنتج', 'النوع', 'الكمية', 'ملاحظات']],
       body: tableData.length ? tableData : [['لا توجد بيانات']],
       theme: 'grid',
-      styles: { font: 'Helvetica', fontSize: 8 },
+      styles: { font: ARABIC_FONT_NAME, fontSize: 8, halign: 'right' },
       headStyles: { fillColor: [60, 60, 60] },
     });
     doc.save('تقرير-حركات-المخزون.pdf');
   }
 
-  function exportOrdersPdf() {
+  async function exportOrdersPdf() {
     const list = getOrders();
-    const doc = createPdfDoc('تقرير الطلبات');
+    const doc = await createPdfDoc('تقرير الطلبات');
     const tableData = list.map(o => {
       const itemsText = (o.items || []).map(i => `${getProductName(i.productId)}: ${i.qty}`).join(' | ');
       return [
@@ -152,24 +203,24 @@
       head: [['رقم الطلب', 'التاريخ', 'الحالة', 'العميل', 'التليفون', 'العنوان', 'المنتجات', 'الإجمالي', 'الشحن', 'ملاحظات']],
       body: tableData.length ? tableData : [['لا توجد بيانات']],
       theme: 'grid',
-      styles: { font: 'Helvetica', fontSize: 7 },
+      styles: { font: ARABIC_FONT_NAME, fontSize: 7, halign: 'right' },
       headStyles: { fillColor: [60, 60, 60] },
     });
     doc.save('تقرير-الطلبات.pdf');
   }
 
   document.querySelectorAll('.btn-export').forEach(btn => {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', async function () {
       const action = this.getAttribute('data-export');
       switch (action) {
         case 'deposits-excel': exportDepositsExcel(); break;
-        case 'deposits-pdf': exportDepositsPdf(); break;
+        case 'deposits-pdf': await exportDepositsPdf(); break;
         case 'products-excel': exportProductsExcel(); break;
-        case 'products-pdf': exportProductsPdf(); break;
+        case 'products-pdf': await exportProductsPdf(); break;
         case 'movements-excel': exportMovementsExcel(); break;
-        case 'movements-pdf': exportMovementsPdf(); break;
+        case 'movements-pdf': await exportMovementsPdf(); break;
         case 'orders-excel': exportOrdersExcel(); break;
-        case 'orders-pdf': exportOrdersPdf(); break;
+        case 'orders-pdf': await exportOrdersPdf(); break;
       }
     });
   });

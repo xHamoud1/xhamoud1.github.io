@@ -791,15 +791,42 @@ body {
 
   /* الجداول: تمرير أفقي على الموبايل */
   .table-wrap {
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-    border-radius: 10px;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
     border-left: none;
     border-right: none;
+    border-bottom: none;
+    position: relative;
+  }
+
+  .table-wrap::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, var(--bg-card), transparent);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .table-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, var(--bg-card), transparent);
+    z-index: 1;
+    pointer-events: none;
   }
 
   .data-table {
-    min-width: 620px;
+    min-width: 700px;
+    border-radius: 0;
   }
 
   .data-table th,
@@ -930,7 +957,7 @@ body {
   }
 
   .data-table {
-    min-width: 560px;
+    min-width: 650px;
   }
 
   .daily-summary-grid {
