@@ -64,7 +64,7 @@
     return p ? p.name : id;
   }
 
-  const STATUS_LABELS = { pending: 'قيد الانتظار', delivered: 'متسلم', excluded: 'مستبعد', postponed: 'متأجل' };
+  const STATUS_LABELS = { pending: 'قيد الانتظار', delivered: 'متسلم', excluded: 'مستبعد', postponed: 'متأجل', returned: 'مسترجع' };
 
   // --- Excel ---
   function exportDepositsExcel() {

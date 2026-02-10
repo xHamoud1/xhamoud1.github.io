@@ -201,9 +201,72 @@ body {
 /* بطاقات الإحصائيات */
 .cards-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.quarter-calc {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.quarter-calc h3 {
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.quarter-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.quarter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.quarter-item {
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.quarter-item-highlight {
+  border-color: rgba(88, 166, 255, 0.35);
+}
+
+.vehicle-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+.vehicle-tab {
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  color: var(--text);
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 600;
+}
+
+.vehicle-tab.active {
+  border-color: rgba(88, 166, 255, 0.6);
+  background: rgba(88, 166, 255, 0.18);
 }
 
 .stat-card {
@@ -537,8 +600,22 @@ body {
 .badge-delivered { background: rgba(63, 185, 80, 0.25); color: var(--success); }
 .badge-excluded { background: rgba(248, 81, 73, 0.25); color: var(--danger); }
 .badge-postponed { background: rgba(139, 148, 158, 0.25); color: var(--text-muted); }
+.badge-returned { background: rgba(163, 113, 247, 0.25); color: #a371f7; }
 .badge-in { color: var(--success); }
 .badge-out { color: var(--warning); }
+
+.returned-ship-toggle {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.returned-ship-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
 
 /* التقارير */
 .reports-grid {

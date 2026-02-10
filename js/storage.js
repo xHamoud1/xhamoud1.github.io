@@ -6,6 +6,7 @@
 const STORAGE_KEYS = {
   DEPOSITS: 'delivery_deposits',
   TRANSFERS: 'delivery_transfers',
+  VEHICLE_EXPENSES: 'delivery_vehicle_expenses',
   PRODUCTS: 'delivery_products',
   MOVEMENTS: 'delivery_movements',
   ORDERS: 'delivery_orders',
@@ -38,6 +39,16 @@ function getTransfers() {
 
 function setTransfers(arr) {
   localStorage.setItem(STORAGE_KEYS.TRANSFERS, JSON.stringify(arr));
+}
+
+// استهلاكات المركبة (بنزين/زيت/صيانة)
+function getVehicleExpenses() {
+  const raw = localStorage.getItem(STORAGE_KEYS.VEHICLE_EXPENSES);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function setVehicleExpenses(arr) {
+  localStorage.setItem(STORAGE_KEYS.VEHICLE_EXPENSES, JSON.stringify(arr));
 }
 
 // المنتجات

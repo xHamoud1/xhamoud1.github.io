@@ -14,6 +14,7 @@
     appEl.classList.remove('hidden');
     if (window.renderDeposits) window.renderDeposits();
     if (window.renderTransfers) window.renderTransfers();
+    if (window.renderVehicleExpenses) window.renderVehicleExpenses();
     if (window.renderProducts) window.renderProducts();
     if (window.renderMovements) window.renderMovements();
     if (window.renderOrders) window.renderOrders();
@@ -35,13 +36,50 @@
     const transfers = getTransfers();
     const totalTransfers = transfers.reduce((s, t) => s + Number(t.amount), 0);
     document.getElementById('stat-transfers').textContent = Number(totalTransfers).toLocaleString('ar-EG') + ' ج.م';
+
+    const vehicleExpenses = getVehicleExpenses();
+    const totalVehicleExpenses = vehicleExpenses.reduce((s, x) => s + Number(x.amount || 0), 0);
+    const statVehicle = document.getElementById('stat-vehicle-expenses');
+    if (statVehicle) statVehicle.textContent = Number(totalVehicleExpenses).toLocaleString('ar-EG') + ' ج.م';
     
     document.getElementById('stat-products').textContent = getProducts().length;
     const pendingOrders = getOrders().filter(o => o.status === 'pending').length;
     document.getElementById('stat-orders-pending').textContent = pendingOrders;
+
+    const quarterVehicleEl = document.getElementById('quarter-vehicle-expenses');
+    if (quarterVehicleEl) quarterVehicleEl.textContent = Number(totalVehicleExpenses).toLocaleString('ar-EG') + ' ج.م';
   }
 
   window.updateDashboard = updateDashboard;
+
+  const quarterShipInput = document.getElementById('quarter-shipping-per-unit');
+  const quarterCalcBtn = document.getElementById('btn-calc-quarter');
+  const quarterOrdersCountEl = document.getElementById('quarter-orders-count');
+  const quarterEstShippingEl = document.getElementById('quarter-est-shipping');
+  const quarterNetProfitEl = document.getElementById('quarter-net-profit');
+
+  function calcQuarter() {
+    const orders = getOrders();
+    const delivered = orders.filter(o => o.status === 'delivered');
+    const returnedIncluded = orders.filter(o => o.status === 'returned' && o.includeShippingPerUnit);
+
+    const perUnit = quarterShipInput ? (parseFloat(quarterShipInput.value) || 0) : 0;
+    const shippingOrdersCount = delivered.length + returnedIncluded.length;
+    const totalShipping = perUnit * shippingOrdersCount;
+
+    const vehicleExpenses = getVehicleExpenses();
+    const totalVehicleExpenses = vehicleExpenses.reduce((s, x) => s + Number(x.amount || 0), 0);
+
+    const netProfit = totalShipping - totalVehicleExpenses;
+
+    if (quarterOrdersCountEl) quarterOrdersCountEl.textContent = String(shippingOrdersCount);
+    if (quarterEstShippingEl) quarterEstShippingEl.textContent = Number(totalShipping).toLocaleString('ar-EG') + ' ج.م';
+    if (quarterNetProfitEl) quarterNetProfitEl.textContent = Number(netProfit).toLocaleString('ar-EG') + ' ج.م';
+  }
+
+  if (quarterCalcBtn) {
+    quarterCalcBtn.addEventListener('click', calcQuarter);
+  }
 
   // التنقل بين الصفحات
   document.querySelectorAll('.nav-link').forEach(link => {

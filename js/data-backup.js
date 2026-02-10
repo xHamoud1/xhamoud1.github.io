@@ -17,6 +17,7 @@
       data: {
         [STORAGE_KEYS.DEPOSITS]: getDeposits(),
         [STORAGE_KEYS.TRANSFERS]: getTransfers(),
+        [STORAGE_KEYS.VEHICLE_EXPENSES]: getVehicleExpenses(),
         [STORAGE_KEYS.PRODUCTS]: getProducts(),
         [STORAGE_KEYS.MOVEMENTS]: getMovements(),
         [STORAGE_KEYS.ORDERS]: getOrders(),
@@ -70,6 +71,7 @@
       const d = payload.data;
       if (Array.isArray(d[STORAGE_KEYS.DEPOSITS])) setDeposits(d[STORAGE_KEYS.DEPOSITS]);
       if (Array.isArray(d[STORAGE_KEYS.TRANSFERS])) setTransfers(d[STORAGE_KEYS.TRANSFERS]);
+      if (Array.isArray(d[STORAGE_KEYS.VEHICLE_EXPENSES])) setVehicleExpenses(d[STORAGE_KEYS.VEHICLE_EXPENSES]);
       if (Array.isArray(d[STORAGE_KEYS.PRODUCTS])) setProducts(d[STORAGE_KEYS.PRODUCTS]);
       if (Array.isArray(d[STORAGE_KEYS.MOVEMENTS])) setMovements(d[STORAGE_KEYS.MOVEMENTS]);
       if (Array.isArray(d[STORAGE_KEYS.ORDERS])) setOrders(d[STORAGE_KEYS.ORDERS]);
@@ -78,6 +80,7 @@
       pasteArea.value = '';
       if (window.renderDeposits) window.renderDeposits();
       if (window.renderTransfers) window.renderTransfers();
+      if (window.renderVehicleExpenses) window.renderVehicleExpenses();
       if (window.renderProducts) window.renderProducts();
       if (window.renderMovements) window.renderMovements();
       if (window.renderOrders) window.renderOrders();

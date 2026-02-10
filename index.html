@@ -21,6 +21,7 @@
       </form>
       <p id="login-error" class="login-error"></p>
     </div>
+
   </div>
 
   <!-- التطبيق الرئيسي -->
@@ -31,6 +32,7 @@
         <a href="#dashboard" class="nav-link active" data-page="dashboard">لوحة التحكم</a>
         <a href="#deposits" class="nav-link" data-page="deposits">التأمينات</a>
         <a href="#transfers" class="nav-link" data-page="transfers">التحويلات</a>
+        <a href="#vehicle-expenses" class="nav-link" data-page="vehicle-expenses">استهلاكات المركبة</a>
         <a href="#products" class="nav-link" data-page="products">المنتجات</a>
         <a href="#movements" class="nav-link" data-page="movements">حركات المخزون</a>
         <a href="#orders" class="nav-link" data-page="orders">الطلبات</a>
@@ -54,12 +56,31 @@
             <span id="stat-transfers" class="stat-value">0</span>
           </div>
           <div class="stat-card">
+            <span class="stat-label">إجمالي استهلاكات المركبة</span>
+            <span id="stat-vehicle-expenses" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
             <span class="stat-label">عدد المنتجات</span>
             <span id="stat-products" class="stat-value">0</span>
           </div>
           <div class="stat-card">
             <span class="stat-label">الطلبات (قيد الانتظار)</span>
             <span id="stat-orders-pending" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="quarter-calc">
+          <h3>حاسبة الربع</h3>
+          <div class="quarter-row">
+            <label class="inline-label">سعر الشحن للطلب الواحد (ج.م):</label>
+            <input type="number" id="quarter-shipping-per-unit" min="0" step="0.01" placeholder="0">
+            <button type="button" id="btn-calc-quarter" class="btn btn-primary">احسب</button>
+          </div>
+          <div class="quarter-grid">
+            <div class="quarter-item"><span>عدد الطلبات المحتسبة للشحن:</span><strong id="quarter-orders-count">0</strong></div>
+            <div class="quarter-item"><span>إجمالي الشحن:</span><strong id="quarter-est-shipping">0 ج.م</strong></div>
+            <div class="quarter-item"><span>استهلاكات المركبة:</span><strong id="quarter-vehicle-expenses">0 ج.م</strong></div>
+            <div class="quarter-item quarter-item-highlight"><span>الربح الصافي:</span><strong id="quarter-net-profit">0 ج.م</strong></div>
           </div>
         </div>
       </section>
@@ -102,6 +123,34 @@
               </tr>
             </thead>
             <tbody id="transfers-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- استهلاكات المركبة -->
+      <section id="page-vehicle-expenses" class="page">
+        <h2>استهلاكات المركبة</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-vehicle-expense" class="btn btn-primary">إضافة استهلاك</button>
+        </div>
+        <div class="vehicle-tabs">
+          <button type="button" class="vehicle-tab active" data-type="fuel">بنزين</button>
+          <button type="button" class="vehicle-tab" data-type="oil">زيت</button>
+          <button type="button" class="vehicle-tab" data-type="maintenance">صيانة</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>النوع</th>
+                <th>الكيلو</th>
+                <th>المبلغ</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-expenses-tbody"></tbody>
           </table>
         </div>
       </section>
@@ -165,6 +214,7 @@
             <option value="delivered">متسلم</option>
             <option value="excluded">مستبعد</option>
             <option value="postponed">متأجل</option>
+            <option value="returned">مسترجع</option>
           </select>
           <button type="button" id="orders-select-all" class="btn btn-ghost">تحديد الكل (المفلترة)</button>
           <button type="button" id="orders-deselect-all" class="btn btn-ghost">إلغاء التحديد</button>
@@ -332,6 +382,40 @@
     </div>
   </div>
 
+  <!-- نافذة إضافة/تعديل استهلاك مركبة -->
+  <div id="modal-vehicle-expense" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-vehicle-expense-title">إضافة استهلاك</h3>
+      <form id="form-vehicle-expense">
+        <input type="hidden" id="vehicle-expense-id">
+        <label>النوع</label>
+        <select id="vehicle-expense-type">
+          <option value="fuel">بنزين</option>
+          <option value="oil">زيت</option>
+          <option value="maintenance">صيانة</option>
+        </select>
+        <label>التاريخ</label>
+        <input type="date" id="vehicle-expense-date" required>
+        <div class="form-row two-cols">
+          <div>
+            <label>الكيلو (اختياري)</label>
+            <input type="number" id="vehicle-expense-km" min="0" step="1" placeholder="0">
+          </div>
+          <div>
+            <label>المبلغ (ج.م)</label>
+            <input type="number" id="vehicle-expense-amount" min="0" step="0.01" placeholder="0" required>
+          </div>
+        </div>
+        <label>ملاحظات</label>
+        <textarea id="vehicle-expense-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- نافذة إضافة/تعديل منتج -->
   <div id="modal-product" class="modal">
     <div class="modal-content">
@@ -408,7 +492,12 @@
           <option value="delivered">متسلم</option>
           <option value="excluded">مستبعد</option>
           <option value="postponed">متأجل</option>
+          <option value="returned">مسترجع</option>
         </select>
+        <label id="order-returned-include-shipping-wrap" class="hidden">
+          <input type="checkbox" id="order-returned-include-shipping">
+          احتساب الشحن (ضمن سعر الشحن للطلب الواحد)
+        </label>
         <label>عناصر الطلب (اختر المنتج والكمية)</label>
         <div id="order-items-container">
           <div class="order-item-row">
@@ -448,6 +537,7 @@
   <script src="js/products.js"></script>
   <script src="js/movements.js"></script>
   <script src="js/orders.js"></script>
+  <script src="js/vehicle-expenses.js"></script>
   <script src="js/reports.js"></script>
   <script src="js/data-backup.js"></script>
   <script src="js/app.js"></script>

@@ -18,6 +18,8 @@
   const orderAddressInput = document.getElementById('order-address');
   const orderTotalPriceInput = document.getElementById('order-total-price');
   const orderShippingInput = document.getElementById('order-shipping');
+  const returnedIncludeShippingWrap = document.getElementById('order-returned-include-shipping-wrap');
+  const returnedIncludeShippingInput = document.getElementById('order-returned-include-shipping');
   const itemsContainer = document.getElementById('order-items-container');
   const addItemBtn = document.getElementById('add-order-item-btn');
   const filterStatus = document.getElementById('orders-filter-status');
@@ -67,6 +69,7 @@
     delivered: { label: 'متسلم', class: 'badge-delivered' },
     excluded: { label: 'مستبعد', class: 'badge-excluded' },
     postponed: { label: 'متأجل', class: 'badge-postponed' },
+    returned: { label: 'مسترجع', class: 'badge-returned' },
   };
 
   function fillProductOptions(selectEl, selectedId) {
@@ -113,8 +116,9 @@
     const all = getOrders();
     const dayOrders = all.filter(o => o.date === dateStr);
     const delivered = dayOrders.filter(o => o.status === 'delivered');
+    const returned = dayOrders.filter(o => o.status === 'returned');
     const notDelivered = dayOrders.filter(o => o.status !== 'delivered');
-    const byStatus = { pending: 0, excluded: 0, postponed: 0 };
+    const byStatus = { pending: 0, excluded: 0, postponed: 0, returned: 0 };
     notDelivered.forEach(o => {
       if (o.status in byStatus) byStatus[o.status]++;
     });
@@ -124,8 +128,12 @@
         productQuantities[it.productId] = (productQuantities[it.productId] || 0) + Number(it.qty);
       });
     });
-    const totalRevenue = delivered.reduce((s, o) => s + (Number(o.totalPrice) || 0), 0);
-    const totalShipping = delivered.reduce((s, o) => s + (Number(o.shipping) || 0), 0);
+    const totalRevenue =
+      delivered.reduce((s, o) => s + (Number(o.totalPrice) || 0), 0) -
+      returned.reduce((s, o) => s + (Number(o.totalPrice) || 0), 0);
+    const totalShipping =
+      delivered.reduce((s, o) => s + (Number(o.shipping) || 0), 0) +
+      returned.reduce((s, o) => s + (Number(o.shipping) || 0), 0);
     return {
       deliveredCount: delivered.length,
       notDeliveredCount: notDelivered.length,
@@ -157,6 +165,7 @@
     if (sum.byStatus.pending) parts.push('قيد الانتظار: ' + sum.byStatus.pending);
     if (sum.byStatus.excluded) parts.push('مستبعد: ' + sum.byStatus.excluded);
     if (sum.byStatus.postponed) parts.push('متأجل: ' + sum.byStatus.postponed);
+    if (sum.byStatus.returned) parts.push('مسترجع: ' + sum.byStatus.returned);
     dailyNotDeliveredBreakdownEl.textContent = parts.length ? parts.join(' · ') : '—';
     dailyRevenueEl.textContent = formatMoney(sum.totalRevenue);
     dailyShippingEl.textContent = formatMoney(sum.totalShipping);
@@ -179,6 +188,11 @@
       orderNumberInput.value = editOrder.orderNumber || '';
       orderDateInput.value = editOrder.date;
       orderStatusInput.value = editOrder.status || 'pending';
+      if (returnedIncludeShippingWrap && returnedIncludeShippingInput) {
+        const isReturned = (orderStatusInput.value === 'returned');
+        returnedIncludeShippingWrap.classList.toggle('hidden', !isReturned);
+        returnedIncludeShippingInput.checked = !!editOrder.includeShippingPerUnit;
+      }
       orderNoteInput.value = editOrder.note || '';
       orderCustomerNameInput.value = editOrder.customerName || '';
       orderPhoneInput.value = editOrder.phone || '';
@@ -194,6 +208,10 @@
       form.reset();
       orderDateInput.value = getTodayDate();
       orderStatusInput.value = 'pending';
+      if (returnedIncludeShippingWrap && returnedIncludeShippingInput) {
+        returnedIncludeShippingWrap.classList.add('hidden');
+        returnedIncludeShippingInput.checked = false;
+      }
       itemsContainer.innerHTML = '';
       addOrderItemRow();
     }
@@ -249,7 +267,8 @@
   function updateSelectionSummary() {
     const totalRevenue = Array.from(selectedOrderIds).reduce((sum, id) => {
       const o = getOrders().find(x => x.id === id);
-      return sum + (o && Number(o.totalPrice) ? Number(o.totalPrice) : 0);
+      const sign = (o && o.status === 'returned') ? -1 : 1;
+      return sum + sign * (o && Number(o.totalPrice) ? Number(o.totalPrice) : 0);
     }, 0);
     const totalShippingFromOrders = Array.from(selectedOrderIds).reduce((sum, id) => {
       const o = getOrders().find(x => x.id === id);
@@ -260,11 +279,17 @@
     selectedTotalEl.textContent = formatMoney(totalRevenue);
 
     const perUnit = parseFloat(shippingPerUnitInput.value) || 0;
-    const shippingByPerUnit = perUnit * count;
+    const perUnitCount = Array.from(selectedOrderIds).reduce((c, id) => {
+      const o = getOrders().find(x => x.id === id);
+      if (!o) return c;
+      if (o.status !== 'returned') return c + 1;
+      return c + (o.includeShippingPerUnit ? 1 : 0);
+    }, 0);
+    const shippingByPerUnit = perUnit * perUnitCount;
     const totalShipping = totalShippingFromOrders + shippingByPerUnit;
     shippingTotalEl.textContent = formatMoney(totalShipping);
     if (perUnit > 0 && count > 0) {
-      shippingTotalEl.title = 'شحن مسجل في الطلبات: ' + formatMoney(totalShippingFromOrders) + ' + (' + count + ' × ' + perUnit + ') تقدير';
+      shippingTotalEl.title = 'شحن مسجل في الطلبات: ' + formatMoney(totalShippingFromOrders) + ' + (' + perUnitCount + ' × ' + perUnit + ') تقدير';
     }
     const netTotal = totalRevenue - totalShipping;
     if (netTotalEl) netTotalEl.textContent = formatMoney(netTotal);
@@ -300,9 +325,13 @@
 
     tbody.innerHTML = filtered.map(o => {
       const itemsText = (o.items || []).map(i => `${getProductName(i.productId)}: ${i.qty}`).join(' | ') || '—';
-      const status = STATUS_MAP[o.status] || STATUS_MAP.pending;
+      const statusKey = (o.status || 'pending').trim();
+      const status = STATUS_MAP[statusKey] || STATUS_MAP.pending;
       const checked = selectedOrderIds.has(o.id);
       const customerLine = [o.customerName, o.phone].filter(Boolean).join(' · ') || '—';
+      const returnedShipToggle = (statusKey === 'returned')
+        ? `<div class="returned-ship-toggle"><label><input type="checkbox" class="returned-ship-checkbox" data-id="${o.id}" ${o.includeShippingPerUnit ? 'checked' : ''}> احتساب شحن</label></div>`
+        : '';
       return `
         <tr>
           <td class="col-check"><input type="checkbox" class="order-row-check" data-id="${o.id}" ${checked ? 'checked' : ''}></td>
@@ -311,7 +340,7 @@
           <td>${itemsText}</td>
           <td>${formatMoney(o.totalPrice)}</td>
           <td>${formatMoney(o.shipping)}</td>
-          <td><span class="badge ${status.class}">${status.label}</span></td>
+          <td><span class="badge ${status.class}">${status.label}</span>${returnedShipToggle}</td>
           <td>${(o.note || '').slice(0, 30)}${(o.note && o.note.length > 30) ? '...' : ''}</td>
           <td class="actions">
             <button type="button" class="btn btn-small btn-ghost edit-order" data-id="${o.id}">تعديل</button>
@@ -345,6 +374,19 @@
           updateSelectionSummary();
           if (window.updateDashboard) window.updateDashboard();
         }
+      });
+    });
+
+    tbody.querySelectorAll('.returned-ship-checkbox').forEach(cb => {
+      cb.addEventListener('change', function () {
+        const id = this.dataset.id;
+        const arr = getOrders();
+        const next = arr.map(o => {
+          if (String(o.id) !== String(id)) return o;
+          return { ...o, includeShippingPerUnit: !!this.checked };
+        });
+        setOrders(next);
+        updateSelectionSummary();
       });
     });
 
@@ -405,6 +447,10 @@
 
     let arr = getOrders();
     const previousOrder = id ? arr.find(x => x.id === id) : null;
+    const includeShippingPerUnit = (status === 'returned' && returnedIncludeShippingInput)
+      ? !!returnedIncludeShippingInput.checked
+      : false;
+
     const orderData = {
       orderNumber, date, status, note, items,
       customerName: customerName || undefined,
@@ -413,6 +459,7 @@
       address: address || undefined,
       totalPrice: totalPrice != null ? totalPrice : undefined,
       shipping: shipping != null ? shipping : undefined,
+      includeShippingPerUnit,
     };
 
     if (id) {
@@ -439,6 +486,14 @@
   });
 
   modal.querySelectorAll('.cancel-btn').forEach(btn => btn.addEventListener('click', closeModal));
+
+  if (orderStatusInput && returnedIncludeShippingWrap && returnedIncludeShippingInput) {
+    orderStatusInput.addEventListener('change', function () {
+      const isReturned = (this.value === 'returned');
+      returnedIncludeShippingWrap.classList.toggle('hidden', !isReturned);
+      if (!isReturned) returnedIncludeShippingInput.checked = false;
+    });
+  }
 
   if (filterStatus) filterStatus.addEventListener('change', render);
   if (filterDateEl) filterDateEl.addEventListener('change', render);
