@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الديلفري - تأمينات وبضاعة وطلبات</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- شاشة الدخول -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <h1>إدارة الديلفري</h1>
+      <p class="login-sub">تأمينات · بضاعة · طلبات</p>
+      <form id="login-form">
+        <input type="password" id="login-password" placeholder="كلمة المرور" autocomplete="off">
+        <button type="submit">دخول</button>
+      </form>
+      <p id="login-error" class="login-error"></p>
+    </div>
+
+  </div>
+
+  <!-- التطبيق الرئيسي ص-->
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="logo">إدارة الديلفري</div>
+      <nav class="nav">
+        <a href="#dashboard" class="nav-link active" data-page="dashboard">لوحة التحكم</a>
+        <a href="#deposits" class="nav-link" data-page="deposits">التأمينات</a>
+        <a href="#transfers" class="nav-link" data-page="transfers">التحويلات</a>
+        <a href="#vehicle-expenses" class="nav-link" data-page="vehicle-expenses">استهلاكات المركبة</a>
+        <a href="#products" class="nav-link" data-page="products">المنتجات</a>
+        <a href="#movements" class="nav-link" data-page="movements">حركات المخزون</a>
+        <a href="#orders" class="nav-link" data-page="orders">الطلبات</a>
+        <a href="#reports" class="nav-link" data-page="reports">التقارير</a>
+        <a href="#data" class="nav-link" data-page="data">البيانات</a>
+      </nav>
+      <button type="button" id="logout-btn" class="logout-btn">خروج</button>
+    </aside>
+
+    <main class="main">
+      <!-- لوحة التحكم -->
+      <section id="page-dashboard" class="page active">
+        <h2>لوحة التحكم</h2>
+        <div class="cards-row">
+          <div class="stat-card">
+            <span class="stat-label">إجمالي التأمينات</span>
+            <span id="stat-deposits" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">إجمالي التحويلات</span>
+            <span id="stat-transfers" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">إجمالي استهلاكات المركبة</span>
+            <span id="stat-vehicle-expenses" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">عدد المنتجات</span>
+            <span id="stat-products" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">الطلبات (قيد الانتظار)</span>
+            <span id="stat-orders-pending" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="quarter-calc">
+          <h3>حاسبة الربع</h3>
+          <div class="quarter-row">
+            <label class="inline-label">سعر الشحن للطلب الواحد (ج.م):</label>
+            <input type="number" id="quarter-shipping-per-unit" min="0" step="0.01" placeholder="0">
+            <button type="button" id="btn-calc-quarter" class="btn btn-primary">احسب</button>
+          </div>
+          <div class="quarter-grid">
+            <div class="quarter-item"><span>عدد الطلبات المحتسبة للشحن:</span><strong id="quarter-orders-count">0</strong></div>
+            <div class="quarter-item"><span>إجمالي الشحن:</span><strong id="quarter-est-shipping">0 ج.م</strong></div>
+            <div class="quarter-item"><span>استهلاكات المركبة:</span><strong id="quarter-vehicle-expenses">0 ج.م</strong></div>
+            <div class="quarter-item quarter-item-highlight"><span>الربح الصافي:</span><strong id="quarter-net-profit">0 ج.م</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- التأمينات -->
+      <section id="page-deposits" class="page">
+        <h2>التأمينات</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-deposit" class="btn btn-primary">إضافة تأمين</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>المبلغ</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="deposits-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- التحويلات -->
+      <section id="page-transfers" class="page">
+        <h2>التحويلات</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-transfer" class="btn btn-primary">إضافة تحويل</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>المبلغ</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transfers-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- استهلاكات المركبة -->
+      <section id="page-vehicle-expenses" class="page">
+        <h2>استهلاكات المركبة</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-vehicle-expense" class="btn btn-primary">إضافة استهلاك</button>
+        </div>
+        <div class="vehicle-tabs">
+          <button type="button" class="vehicle-tab active" data-type="fuel">بنزين</button>
+          <button type="button" class="vehicle-tab" data-type="oil">زيت</button>
+          <button type="button" class="vehicle-tab" data-type="maintenance">صيانة</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>النوع</th>
+                <th>الكيلو</th>
+                <th>المبلغ</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-expenses-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- المنتجات -->
+      <section id="page-products" class="page">
+        <h2>المنتجات</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-product" class="btn btn-primary">إضافة منتج</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>المنتج</th>
+                <th>الوحدة</th>
+                <th>الكمية الحالية</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- حركات المخزون -->
+      <section id="page-movements" class="page">
+        <h2>حركات المخزون</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-movement-in" class="btn btn-success">إدخال بضاعة</button>
+          <button type="button" id="btn-add-movement-out" class="btn btn-warning">إخراج بضاعة</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>المنتج</th>
+                <th>النوع</th>
+                <th>الكمية</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="movements-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- الطلبات -->
+      <section id="page-orders" class="page">
+        <h2>الطلبات</h2>
+        <div class="toolbar">
+          <button type="button" id="btn-add-order" class="btn btn-primary">إضافة طلب</button>
+          <span class="toolbar-label">فلتر بالتاريخ:</span>
+          <input type="date" id="orders-filter-date" class="filter-date">
+          <button type="button" id="orders-filter-today" class="btn btn-ghost">اليوم</button>
+          <button type="button" id="orders-filter-clear-date" class="btn btn-ghost">كل التواريخ</button>
+          <select id="orders-filter-status" class="filter-select">
+            <option value="">كل الحالات</option>
+            <option value="pending">قيد الانتظار</option>
+            <option value="delivered">متسلم</option>
+            <option value="excluded">مستبعد</option>
+            <option value="postponed">متأجل</option>
+            <option value="returned">مسترجع</option>
+          </select>
+          <button type="button" id="orders-select-all" class="btn btn-ghost">تحديد الكل (المفلترة)</button>
+          <button type="button" id="orders-deselect-all" class="btn btn-ghost">إلغاء التحديد</button>
+        </div>
+        <div id="orders-daily-summary" class="daily-summary-box">
+          <h3 class="daily-summary-title">ملخص اليوم</h3>
+          <p id="daily-summary-placeholder" class="daily-summary-placeholder">اختر تاريخاً من الفلتر أعلاه لعرض الملخص اليومي والتفاصيل.</p>
+          <div id="daily-summary-content" class="daily-summary-content hidden">
+            <p class="summary-date" id="daily-summary-date"></p>
+            <div class="daily-summary-grid">
+              <div class="daily-summary-card">
+                <span class="daily-label">طلبات متسلمة</span>
+                <span class="daily-value" id="daily-delivered-count">0</span>
+              </div>
+              <div class="daily-summary-card">
+                <span class="daily-label">طلبات لم تتسلم</span>
+                <span class="daily-value" id="daily-not-delivered-count">0</span>
+                <small id="daily-not-delivered-breakdown"></small>
+              </div>
+              <div class="daily-summary-card highlight">
+                <span class="daily-label">إجمالي الفلوس (المتسلمة)</span>
+                <span class="daily-value" id="daily-revenue">0 ج.م</span>
+              </div>
+              <div class="daily-summary-card">
+                <span class="daily-label">إجمالي الشحن (المتسلمة)</span>
+                <span class="daily-value" id="daily-shipping">0 ج.م</span>
+              </div>
+            </div>
+            <div class="daily-products-section">
+              <h4>تفصيل الكميات من الطلبات المتسلمة</h4>
+              <table class="daily-products-table">
+                <thead>
+                  <tr><th>المنتج</th><th>الوحدة</th><th>الكمية</th></tr>
+                </thead>
+                <tbody id="daily-products-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="orders-summary-box">
+          <div class="summary-row">
+            <span>عدد الطلبات المحددة:</span>
+            <strong id="orders-selected-count">0</strong>
+          </div>
+          <div class="summary-row">
+            <span>إجمالي إيرادات المحدد:</span>
+            <strong id="orders-selected-total">0 ج.م</strong>
+          </div>
+          <div class="summary-row">
+            <label class="inline-label">سعر الشحن للطلب الواحد (ج.م):</label>
+            <input type="number" id="orders-shipping-per-unit" min="0" step="0.01" placeholder="0">
+            <span class="summary-result">→ إجمالي الشحن للمحدد: <strong id="orders-shipping-total">0 ج.م</strong></span>
+          </div>
+          <div class="summary-row summary-row-net">
+            <span>إجمالي الإيرادات بعد خصم الشحن:</span>
+            <strong id="orders-net-total">0 ج.م</strong>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-check"><input type="checkbox" id="orders-check-all" title="تحديد الكل"></th>
+                <th>العميل / التليفون</th>
+                <th>رقم/تاريخ</th>
+                <th>المنتجات</th>
+                <th>الإجمالي</th>
+                <th>الشحن</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- البيانات (نسخ / لصق) -->
+      <section id="page-data" class="page">
+        <h2>البيانات</h2>
+        <p class="data-page-desc">نسخ كل بيانات الموقع (تأمينات، منتجات، حركات مخزون، طلبات) ككود واحد. يمكنك حفظه أو إرساله لجهاز آخر ثم لصقه هنا لاستعادة نفس البيانات.</p>
+        <div class="data-actions">
+          <button type="button" id="data-copy-btn" class="btn btn-primary">نسخ كل البيانات</button>
+          <p id="data-copy-status" class="data-status"></p>
+        </div>
+        <div class="data-paste-section">
+          <label>استعادة من جهاز آخر: الصق الكود هنا ثم اضغط "استعادة البيانات"</label>
+          <textarea id="data-paste-area" class="data-paste-area" rows="6" placeholder="الصق هنا الكود المُنسَخ من جهاز آخر..."></textarea>
+          <button type="button" id="data-restore-btn" class="btn btn-warning">استعادة البيانات</button>
+          <p id="data-restore-status" class="data-status"></p>
+        </div>
+      </section>
+
+      <!-- التقارير -->
+      <section id="page-reports" class="page">
+        <h2>التقارير</h2>
+        <div class="reports-grid">
+          <div class="report-card">
+            <h3>التأمينات</h3>
+            <p>تصدير كل التأمينات مع التواريخ والملاحظات</p>
+            <button type="button" class="btn btn-secondary btn-export" data-export="deposits-excel">Excel</button>
+            <button type="button" class="btn btn-secondary btn-export" data-export="deposits-pdf">PDF</button>
+          </div>
+          <div class="report-card">
+            <h3>المنتجات والمخزون</h3>
+            <p>المنتجات والكميات الحالية</p>
+            <button type="button" class="btn btn-secondary btn-export" data-export="products-excel">Excel</button>
+            <button type="button" class="btn btn-secondary btn-export" data-export="products-pdf">PDF</button>
+          </div>
+          <div class="report-card">
+            <h3>حركات المخزون</h3>
+            <p>كل حركات الإدخال والإخراج بالتواريخ</p>
+            <button type="button" class="btn btn-secondary btn-export" data-export="movements-excel">Excel</button>
+            <button type="button" class="btn btn-secondary btn-export" data-export="movements-pdf">PDF</button>
+          </div>
+          <div class="report-card">
+            <h3>الطلبات</h3>
+            <p>كل الطلبات والحالات والملاحظات</p>
+            <button type="button" class="btn btn-secondary btn-export" data-export="orders-excel">Excel</button>
+            <button type="button" class="btn btn-secondary btn-export" data-export="orders-pdf">PDF</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- نافذة إضافة/تعديل تأمين -->
+  <div id="modal-deposit" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-deposit-title">إضافة تأمين</h3>
+      <form id="form-deposit">
+        <input type="hidden" id="deposit-id">
+        <label>المبلغ</label>
+        <input type="number" id="deposit-amount" step="0.01" required>
+        <label>التاريخ</label>
+        <input type="date" id="deposit-date" required>
+        <label>ملاحظات</label>
+        <textarea id="deposit-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة/تعديل تحويل -->
+  <div id="modal-transfer" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-transfer-title">إضافة تحويل</h3>
+      <form id="form-transfer">
+        <input type="hidden" id="transfer-id">
+        <label>المبلغ</label>
+        <input type="number" id="transfer-amount" step="0.01" required>
+        <label>التاريخ</label>
+        <input type="date" id="transfer-date" required>
+        <label>ملاحظات</label>
+        <textarea id="transfer-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة/تعديل استهلاك مركبة -->
+  <div id="modal-vehicle-expense" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-vehicle-expense-title">إضافة استهلاك</h3>
+      <form id="form-vehicle-expense">
+        <input type="hidden" id="vehicle-expense-id">
+        <label>النوع</label>
+        <select id="vehicle-expense-type">
+          <option value="fuel">بنزين</option>
+          <option value="oil">زيت</option>
+          <option value="maintenance">صيانة</option>
+        </select>
+        <label>التاريخ</label>
+        <input type="date" id="vehicle-expense-date" required>
+        <div class="form-row two-cols">
+          <div>
+            <label>الكيلو (اختياري)</label>
+            <input type="number" id="vehicle-expense-km" min="0" step="1" placeholder="0">
+          </div>
+          <div>
+            <label>المبلغ (ج.م)</label>
+            <input type="number" id="vehicle-expense-amount" min="0" step="0.01" placeholder="0" required>
+          </div>
+        </div>
+        <label>ملاحظات</label>
+        <textarea id="vehicle-expense-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة/تعديل منتج -->
+  <div id="modal-product" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-product-title">إضافة منتج</h3>
+      <form id="form-product">
+        <input type="hidden" id="product-id">
+        <label>اسم المنتج</label>
+        <input type="text" id="product-name" required>
+        <label>الوحدة (قطعة، كرتون، ...)</label>
+        <input type="text" id="product-unit" placeholder="قطعة">
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة حركة مخزون -->
+  <div id="modal-movement" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-movement-title">حركة مخزون</h3>
+      <form id="form-movement">
+        <input type="hidden" id="movement-type" value="in">
+        <label>المنتج</label>
+        <select id="movement-product" required></select>
+        <label>الكمية</label>
+        <input type="number" id="movement-qty" min="1" required>
+        <label>التاريخ</label>
+        <input type="date" id="movement-date" required>
+        <label>ملاحظات</label>
+        <textarea id="movement-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة إضافة/تعديل طلب -->
+  <div id="modal-order" class="modal">
+    <div class="modal-content modal-wide">
+      <h3 id="modal-order-title">إضافة طلب</h3>
+      <form id="form-order">
+        <input type="hidden" id="order-id">
+        <div class="form-row two-cols">
+          <div>
+            <label>اسم العميل</label>
+            <input type="text" id="order-customer-name" placeholder="اسم العميل">
+          </div>
+          <div>
+            <label>رقم الهاتف</label>
+            <input type="text" id="order-phone" placeholder="رقم الهاتف">
+          </div>
+        </div>
+        <div class="form-row two-cols">
+          <div>
+            <label>رقم إضافي</label>
+            <input type="text" id="order-phone2" placeholder="رقم إضافي">
+          </div>
+          <div>
+            <label>العنوان</label>
+            <input type="text" id="order-address" placeholder="العنوان">
+          </div>
+        </div>
+        <label>رقم الطلب / وصف (اختياري)</label>
+        <input type="text" id="order-number" placeholder="مثال: طلب #١٢٣">
+        <label>التاريخ</label>
+        <input type="date" id="order-date" required>
+        <label>الحالة</label>
+        <select id="order-status">
+          <option value="pending">قيد الانتظار</option>
+          <option value="delivered">متسلم</option>
+          <option value="excluded">مستبعد</option>
+          <option value="postponed">متأجل</option>
+          <option value="returned">مسترجع</option>
+        </select>
+        <label id="order-returned-include-shipping-wrap" class="hidden">
+          <input type="checkbox" id="order-returned-include-shipping">
+          احتساب الشحن (ضمن سعر الشحن للطلب الواحد)
+        </label>
+        <label>عناصر الطلب (اختر المنتج والكمية)</label>
+        <div id="order-items-container">
+          <div class="order-item-row">
+            <select class="order-item-product"><option value="">-- اختر منتج --</option></select>
+            <input type="number" class="order-item-qty" min="1" placeholder="كمية">
+            <button type="button" class="btn btn-small btn-ghost remove-order-item">حذف</button>
+          </div>
+        </div>
+        <button type="button" id="add-order-item-btn" class="btn btn-ghost">+ إضافة منتج للطلب</button>
+        <div class="form-row two-cols">
+          <div>
+            <label>إجمالي السعر (ج.م)</label>
+            <input type="number" id="order-total-price" min="0" step="0.01" placeholder="0">
+          </div>
+          <div>
+            <label>سعر الشحن (ج.م)</label>
+            <input type="number" id="order-shipping" min="0" step="0.01" placeholder="0">
+          </div>
+        </div>
+        <label>ملاحظات</label>
+        <textarea id="order-note" rows="3"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost cancel-btn">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/deposits.js"></script>
+  <script src="js/transfers.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/movements.js"></script>
+  <script src="js/orders.js"></script>
+  <script src="js/vehicle-expenses.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/data-backup.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
