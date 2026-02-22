@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   PRODUCTS: 'delivery_products',
   MOVEMENTS: 'delivery_movements',
   ORDERS: 'delivery_orders',
+  ROUTE_POINTS: 'delivery_route_points',
 };
 
 function generateId() {
@@ -79,6 +80,16 @@ function getOrders() {
 
 function setOrders(arr) {
   localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(arr));
+}
+
+// سير الطلبات (نقاط/طلبات مؤقتة على الخريطة)
+function getRoutePoints() {
+  const raw = localStorage.getItem(STORAGE_KEYS.ROUTE_POINTS);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function setRoutePoints(arr) {
+  localStorage.setItem(STORAGE_KEYS.ROUTE_POINTS, JSON.stringify(arr));
 }
 
 // حساب الكمية الحالية لمنتج من الحركات

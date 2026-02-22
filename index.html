@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>إدارة الديلفري - تأمينات وبضاعة وطلبات</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -36,6 +37,7 @@
         <a href="#products" class="nav-link" data-page="products">المنتجات</a>
         <a href="#movements" class="nav-link" data-page="movements">حركات المخزون</a>
         <a href="#orders" class="nav-link" data-page="orders">الطلبات</a>
+        <a href="#route-planner" class="nav-link" data-page="route-planner">سير الطلبات</a>
         <a href="#reports" class="nav-link" data-page="reports">التقارير</a>
         <a href="#data" class="nav-link" data-page="data">البيانات</a>
       </nav>
@@ -293,6 +295,80 @@
         </div>
       </section>
 
+      <!-- سير الطلبات -->
+      <section id="page-route-planner" class="page">
+        <h2>سير الطلبات</h2>
+        <div class="toolbar">
+          <button type="button" id="rp-btn-my-location" class="btn btn-secondary">موقعي الحالي</button>
+          <button type="button" id="rp-btn-optimize" class="btn btn-primary">رتّب الأقرب</button>
+          <button type="button" id="rp-btn-clear" class="btn btn-danger">مسح الكل</button>
+        </div>
+
+        <div class="rp-layout">
+          <div class="rp-panel">
+            <div class="rp-form">
+              <input type="hidden" id="rp-id">
+
+              <label>اسم العميل</label>
+              <input type="text" id="rp-title" placeholder="مثال: أحمد">
+
+              <div class="form-row two-cols">
+                <div>
+                  <label>رقم الهاتف</label>
+                  <input type="text" id="rp-phone" placeholder="01xxxxxxxxx">
+                </div>
+                <div>
+                  <label>رقم إضافي</label>
+                  <input type="text" id="rp-phone2" placeholder="01xxxxxxxxx">
+                </div>
+              </div>
+
+              <div class="form-row two-cols">
+                <div>
+                  <label>المنتج</label>
+                  <input type="text" id="rp-product" placeholder="مثال: بيتزا">
+                </div>
+                <div>
+                  <label>الإجمالي (ج.م)</label>
+                  <input type="number" id="rp-total" min="0" step="0.01" placeholder="0">
+                </div>
+              </div>
+
+              <label>لينك اللوكيشن أو Lat,Lng</label>
+              <input type="text" id="rp-location" placeholder="الصق لينك جوجل ماب أو اكتب 30.0444,31.2357">
+
+              <label>ملاحظات (اختياري)</label>
+              <input type="text" id="rp-note" placeholder="مثال: الدور الثالث">
+
+              <button type="button" id="rp-btn-add" class="btn btn-success">حفظ</button>
+              <p id="rp-status" class="rp-status"></p>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>العميل</th>
+                    <th>التليفونات</th>
+                    <th>المنتج</th>
+                    <th>الإجمالي</th>
+                    <th>الإحداثيات</th>
+                    <th>لينك</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="rp-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="rp-map-wrap">
+            <div id="rp-map" class="rp-map"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- البيانات (نسخ / لصق) -->
       <section id="page-data" class="page">
         <h2>البيانات</h2>
@@ -530,6 +606,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/deposits.js"></script>
@@ -538,6 +615,7 @@
   <script src="js/movements.js"></script>
   <script src="js/orders.js"></script>
   <script src="js/vehicle-expenses.js"></script>
+  <script src="js/route-planner.js"></script>
   <script src="js/reports.js"></script>
   <script src="js/data-backup.js"></script>
   <script src="js/app.js"></script>

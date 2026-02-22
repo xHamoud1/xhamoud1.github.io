@@ -14,6 +14,7 @@
     appEl.classList.remove('hidden');
     if (window.renderDeposits) window.renderDeposits();
     if (window.renderTransfers) window.renderTransfers();
+    if (window.renderRoutePlanner) window.renderRoutePlanner();
     if (window.renderVehicleExpenses) window.renderVehicleExpenses();
     if (window.renderProducts) window.renderProducts();
     if (window.renderMovements) window.renderMovements();
@@ -91,6 +92,13 @@
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       const target = document.getElementById('page-' + page);
       if (target) target.classList.add('active');
+
+      if (page === 'route-planner') {
+        if (window.renderRoutePlanner) window.renderRoutePlanner();
+        setTimeout(function () {
+          if (window.rpInvalidateMap) window.rpInvalidateMap();
+        }, 50);
+      }
     });
   });
 
